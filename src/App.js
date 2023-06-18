@@ -1,135 +1,165 @@
 import './App.css';
-import { useState } from "react";
-const listFromServer=[
-  {id: 1, note:"Ăn phở bò", done: true},
-  {id: 2, note: "Ăn cơm gà quán bà Năm", done: false},
-  {id: 3, note: "Ăn cơm mẹ nấu", done: false},
-  {id: 4, note: "Ăn hết cả thế giới", done: false},
-];
+import { useState,useEffect } from "react";
 
-function App() {
-  
-  return (
-    <div className="App">
-          <Render/>
-    </div>
-  );
+
+/* try but fail to get png files name on dirrctor, try later
+function getDirectoryPngFiles(directoryName) {
+  const directory = window.location.origin + "/" + directoryName;
+  console.log(directory)//test
+  return fetch(directory)
+    .then((response) => {
+      return response.text();
+    })
+    .then((html) => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const pngFiles = [];
+      const fileLinks = doc.getElementsByTagName("a");
+      for (let i = 0; i < fileLinks.length; i++) {
+        const link = fileLinks[i];
+        const fileName = link.href.split("/").pop();
+        if (/\.png$/.test(fileName)) {
+          pngFiles.push(fileName);
+        }
+      }
+      console.log(pngFiles);//test
+      return pngFiles;
+    });
 }
+*/
+function randomTo(input){
+  return Math.ceil(Math.random() * input);
+}
+//=============
+function App() {
+  const [indexPng,indexPngState]=useState([
+    {name: "Body", path: "character/body", file: 17, chosen: randomTo(17)},
+    {name: "Earrings", path: "character/accessories/earrings", file: 32, chosen: randomTo(32)},
+    {name: "Clothes layer 1", path: "character/clothes/layer_1", file: 5, chosen: randomTo(5)},
+    {name: "Clothes layer 2", path: "character/clothes/layer_2", file: 5, chosen:randomTo(5)},
+    {name: "Clothes layer 3", path: "character/clothes/layer_3", file: 9, chosen:randomTo(5)},
+    {name: "Neckwear", path: "character/accessories/neckwear", file: 18, chosen: randomTo(18)},
+    {name: "Eyebrows", path: "character/eyebrows", file: 15, chosen:randomTo(15)},
+    {name: "Eyes", path: "character/eyes", file: 24, chosen:randomTo(24)},
+    {name: "Glasses", path: "character/accessories/glasses", file: 17, chosen: randomTo(17)},
+    {name: "Hair", path: "character/hair", file: 73, chosen:randomTo(73)},
+    {name: "Facial hair", path: "character/facial_hair", file: 18, chosen:randomTo(18)},
+    {name: "Mouth", path: "character/mouths", file: 24, chosen:randomTo(24)},
+    {name: "Nose", path: "character/noses", file: 1, chosen:randomTo(1)},
+    {name: "Hat", path: "character/accessories/hats", file: 28, chosen: randomTo(28)}
+  ]);
+  const [reRender,reRenderState]=useState(true);
+  const [appDirection, appDirectionState] = useState(window.innerWidth >= 1000?'row':'column');
 
-
-function Render(){
-  const [localList,localListState] = useState(listFromServer.map((e)=>{return {...e, changing: false, newNote: e.note}}));
-  const [renderFlag,renderFlagState] = useState(true);//use this userState because React can't detect when element inside localList change
-  const [renderDoneOnly,renderDoneOnlyState] = useState(true);
-  return(
-  <div className="todoListContainer">
-    <h1>Todo List</h1>
-    <ShowDone/>
-    <RenderList list={localList} doneOnly={renderDoneOnly}/>
-    <AddTodo list={localList}/>
-  </div>
-  );
-
-  //=========== Function for Child components
-
-  function ShowDone(){
-    return (<div className="showDone"><input type="checkbox" defaultChecked={renderDoneOnly} onChange={()=>renderDoneOnlyState(!renderDoneOnly)}/>Don't show done tags</div>);
-  }
-
-  function AddTodo({list, valueInput}){
-    let newItem = null;
-    let maxId = list.reduce((max, e) => e.id > max ? e.id : max, 0);
-    let newId=maxId+1;
-    function addItem(){
-      if(newItem!==null) list.push(newItem);;
-      localListState(list);
-      renderFlagState(!renderFlag);
-
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= 1000) {
+        appDirectionState('row');
+      } else {
+        appDirectionState('column');
+      }
     }
-    function changeAddItem(event,idInput){
-      let value = event.target.value
-      newItem={id: newId, note: value, done: false, changing: false, newNote: value}
 
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  //==============
+  function clickTo(choice,id){
+    indexPng.find((e)=> e.name===choice).chosen=id;
+    indexPngState(indexPng);
+    reRenderState(!reRender);
+  }
+  //============== Child Component
+  function ChoiceItem({choice}){
+    let pngDirectory = (indexPng.find((e)=> e.name===choice));
+    let iconQuantity = pngDirectory.file;
+    let iconChosen = pngDirectory.chosen;
+    if(iconQuantity>1){
+      let iconPath = window.location.origin+"/"+pngDirectory.path;
+      let choiceItemInside = [];
+      for(let i=1;i<=iconQuantity;i++){
+        choiceItemInside.push(
+          <img className={iconChosen!==i? "iconForChoice":"iconBeChosen"}
+          key={`choice-${choice}${i}`}
+          src={`${iconPath}/${i}.png`}
+          alt=""
+          onClick={()=>{if(iconChosen!==i) clickTo(choice,i);}}
+          />
+        )
+      }
+      return(<div className="ChoiceItem"><h2>{choice}</h2><div className="ChoiceItemIcons"><>{choiceItemInside}</></div></div>)
+    };
+    return "";
+  };
+    //===
+  function Choices() {
+    
+    return (
+      <div className="Choices">{
+        indexPng.map((e)=>(<ChoiceItem choice = {e.name} />))
+      }
+      </div>
+    );
+  }
+  //==============Main component
+  function Avatar() {
+    //props is a list id of items
+    
+    let chosenItemInside = [];
+    indexPng.forEach((e,index)=>{
+      let id=e.chosen;
+      let name=e.name;
+      let iconPath = window.location.origin+"/"+e.path;
+      chosenItemInside.push(
+        <img className='imageAvatarLayer' 
+        key={`chosen-${name}${id}`}
+        src={`${iconPath}/${id}.png`}
+        style={{ zIndex: index }}
+        alt=""
+        />
+      );
+      if(name==="Earrings"){
+        chosenItemInside.push(
+          <img className='imageAvatarLayerFlip'
+          key={`chosen-${name}${id}flip`}
+          src={`${iconPath}/${id}.png`}
+          style={{ zIndex: index }}
+          alt=""
+          />
+        );
+      }
+    });
+    const randomChose = ()=>{
+      indexPng.forEach((e)=>{
+        let file = e.file;
+        e.chosen = randomTo(file);
+      });
+      indexPngState(indexPng);
+      reRenderState(!reRender);
     }
     return (
-      <div className="addTodoContainer">
-        <div className="addItem">
-          <input id={`addItem-${newId}`} className="listItemInput blur" defaultValue={valueInput} onChange={(event)=>changeAddItem(event,newId)}/>                 
-          <div className="listItemButtons">
-            <button onClick={addItem}>Add</button>
+      <div className="Avatar">
+        <h1>CHOSE YOUR AVATAR</h1>
+        <div className="containerAvatar" style={appDirection==="row"?{ position: "sticky", top: 10}:{ position: "relative"}}>
+          <div className="imageAvatar">
+            <>{chosenItemInside}</>
           </div>
+          <button onClick={randomChose}>RANDOM!</button>
         </div>
       </div>
     );
   }
-
-  function RenderList({list, doneOnly}){
-    return (
-      <div key="listContainerId" className="listContainer">
-      {list.length?
-        (list.map(
-            (e)=>{
-              if(!(doneOnly && e.done)) return (
-                <div key={e.id} id={`listItem-${e.id}`} className="listItem">
-                {(<input type="checkbox" id={`doneItem-${e.id}`} defaultChecked={e.done} onChange={()=>reverseDone(e.id)}/>)}
-                {e.changing?
-                  (<input id={`changingItem-${e.id}`} className="listItemInput blur" defaultValue={e.newNote} onChange={(event)=>changeItem(event,e.id)}/>)
-                  :
-                  (<div className={`listItemInput centerChild${e.done? " done":""}`}>{e.note}</div>)
-                }
-                <div className="listItemButtons">
-                  {e.changing?(<button onClick={()=>saveItem(e.id)}>Save</button>):(<button onClick={()=>editItem(e.id)}>Edit</button>)}
-                  <button onClick={()=>deleteItem(e.id)}>Delete</button>
-                </div>
-              </div>
-              )
-              else return "";
-            }
-          )
-        )
-      :<h2>Empty Todo List</h2>}
+  return (
+    <div className="App" style={{ flexDirection: appDirection }}>
+          <Avatar/>
+          <Choices/>
     </div>
-    );
-  }
-
-  //========Function for click button
-
-  function reverseDone(idInput){
-    let index = localList.findIndex(e => e.id === idInput);
-    if (index !== -1) {
-      localList[index].done = !localList[index].done;
-      localListState(localList);
-      renderFlagState(!renderFlag);
-    }
-  }
-  function changeItem(event,idInput){
-    let index = localList.findIndex(e => e.id === idInput);
-    if (index !== -1) {
-      localList[index].newNote = event.target.value;
-      localListState(localList);
-      // renderFlagState(!renderFlag);
-    }
-  }
-  function editItem(idInput){
-    let index = localList.findIndex(e => e.id === idInput);
-    if (index !== -1) {
-      localList[index].changing = true;
-      localListState(localList);
-      renderFlagState(!renderFlag);
-    }
-  }
-  function deleteItem(idInput){
-    let newLocalList=localList.filter(e=>e.id!==idInput);
-    localListState(newLocalList);
-  }
-  function saveItem(idInput){
-    let index = localList.findIndex(e => e.id === idInput);
-    if (index !== -1) {
-      localList[index].note = localList[index].newNote;
-      localList[index].changing = false;
-      localListState(localList);
-      renderFlagState(!renderFlag);
-    }
-  }
+  );
 }
+
+
 export default App;
