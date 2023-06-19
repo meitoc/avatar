@@ -50,9 +50,10 @@ function App() {
   ]);
   const [reRender,reRenderState]=useState(true);
   const [appDirection, appDirectionState] = useState(window.innerWidth >= 1000?'row':'column');
-
+  const [maxDivWidth, maxDivWidthState] = useState(window.innerWidth);
   useEffect(() => {
     function handleResize() {
+      maxDivWidthState(window.innerWidth);
       if (window.innerWidth >= 1000) {
         appDirectionState('row');
       } else {
@@ -61,7 +62,6 @@ function App() {
     }
 
     window.addEventListener('resize', handleResize);
-
     return () => {
       window.removeEventListener('resize', handleResize);
     };
@@ -91,7 +91,7 @@ function App() {
           />
         )
       }
-      return(<div className="ChoiceItem"><h2>{choice}</h2><div className="ChoiceItemIcons"><>{choiceItemInside}</></div></div>)
+      return(<div className="ChoiceItem" style={{maxWidth:maxDivWidth}}><h2>{choice}</h2><div className="ChoiceItemIcons"><>{choiceItemInside}</></div></div>)
     };
     return "";
   };
@@ -118,7 +118,7 @@ function App() {
         <img className='imageAvatarLayer' 
         key={`chosen-${name}${id}`}
         src={`${iconPath}/${id}.png`}
-        style={{ zIndex: index }}
+        style={{ zIndex: index , maxWidth: maxDivWidth-10}}
         alt=""
         />
       );
@@ -127,7 +127,7 @@ function App() {
           <img className='imageAvatarLayerFlip'
           key={`chosen-${name}${id}flip`}
           src={`${iconPath}/${id}.png`}
-          style={{ zIndex: index }}
+          style={{ zIndex: index , maxWidth: maxDivWidth-10}}
           alt=""
           />
         );
@@ -145,7 +145,7 @@ function App() {
       <div className="Avatar">
         <h1>CHOSE YOUR AVATAR</h1>
         <div className="containerAvatar" style={appDirection==="row"?{ position: "sticky", top: 10}:{ position: "relative"}}>
-          <div className="imageAvatar">
+          <div className="imageAvatar" style={{maxWidth:maxDivWidth-40,maxHeight:maxDivWidth}}>
             <>{chosenItemInside}</>
           </div>
           <button onClick={randomChose}>RANDOM!</button>
@@ -154,7 +154,7 @@ function App() {
     );
   }
   return (
-    <div className="App" style={{ flexDirection: appDirection }}>
+    <div className="App" style={{ flexDirection: appDirection , maxWidth:maxDivWidth}}>
           <Avatar/>
           <Choices/>
     </div>
